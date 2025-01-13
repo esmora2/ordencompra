@@ -1,0 +1,45 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-ordenes
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: sisdb2025
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - orden-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  ordenes:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: ordenes-container
+    ports:
+      - "8004:8004"
+    environment:
+      DB_HOST: mysql-container
+      DB_PORT: 3306
+      DB_NAME: sisdb2025
+      DB_USERNAME: root
+      DB_PASSWORD: admin
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - orden-network
+
+volumes:
+  db_data:
+
+networks:
+  orden-network:
